@@ -1,0 +1,460 @@
+.cards-style {
+  border-radius: 0 !important;
+  background: white !important;
+  position: absolute;
+  top: 22%;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.cards {
+  height: fit-content;
+  width: 25vw;
+}
+
+.cards .card-content {
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+
+  transition: 0.5s ease-out;
+  -webkit-transition: 0.5s ease-out;
+  -moz-transition: 0.5s ease-out;
+  -o-transition: 0.5s ease-out;
+  -ms-transition: 0.5s ease-out;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  -moz-transform-style: preserve-3d;
+  -o-transform-style: preserve-3d;
+  -ms-transform-style: preserve-3d;
+
+  /* content backface is visible so that static content still appears */
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+  -moz-backface-visibility: visible;
+  -o-backface-visibility: visible;
+  -ms-backface-visibility: visible;
+}
+
+.form {
+  border-radius: 0 0 8px 8px !important;
+}
+
+.cards.flipped .card-content {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+  -o-transform: rotateY(180deg);
+  -ms-transform: rotateY(180deg);
+}
+
+.cards .card-content .card-front,
+.cards .card-content .card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  /* padding: 20px;  */
+}
+
+.cards.flipped .card-content .card-front,
+.cards .card-content .card-back {
+  /* Backface visibility works great for all but IE. As such, we mark the backface visible in IE and manage visibility ourselves */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -o-backface-visibility: hidden;
+  -ms-backface-visibility: visible;
+  position: absolute;
+}
+
+.cards .card-content .card-front,
+.cards.flipped .card-content .card-front {
+  transform: rotateY(0deg);
+  -webkit-transform: rotateY(0deg);
+  -moz-transform: rotateY(0deg);
+  -o-transform: rotateY(0deg);
+  -ms-transform: rotateY(0deg);
+}
+
+.cards .card-content .card-back,
+.cards.flipped .card-content .card-back {
+  transform: rotateY(-180deg);
+  -webkit-transform: rotateY(-180deg);
+  -moz-transform: rotateY(-180deg);
+  -o-transform: rotateY(-180deg);
+  -ms-transform: rotateY(-180deg);
+}
+
+.cards .card-content .card-front,
+.cards.flipped .card-content .card-back {
+  /* IE Hack. Halfway through the card flip, set visibility. Keep other browsers visible throughout the card flip. */
+  animation: stayvisible 0.5s both;
+  -webkit-animation: stayvisible 0.5s both;
+  -moz-animation: stayvisible 0.5s both;
+  -o-animation: stayvisible 0.5s both;
+  -ms-animation: donothing 0.5s;
+  /* -ms-transition: visibility 0s linear 0.17s; */
+  visibility: visible;
+}
+
+.cards.flipped .card-content .card-front,
+.cards .card-content .card-back {
+  /* IE Hack. Halfway through the card flip, set visibility. Keep other browsers visible throughout the card flip. */
+  animation: stayvisible 0.5s both;
+  -webkit-animation: stayvisible 0.5s both;
+  -moz-animation: stayvisible 0.5s both;
+  -o-animation: stayvisible 0.5s both;
+  -ms-animation: donothing 0.5s;
+  /* -ms-transition: visibility 0s linear 0.17s; */
+  visibility: hidden;
+}
+
+@keyframes stayvisible {
+  from {
+    visibility: visible;
+  }
+
+  to {
+    visibility: visible;
+  }
+}
+
+@-webkit-keyframes stayvisible {
+  from {
+    visibility: visible;
+  }
+
+  to {
+    visibility: visible;
+  }
+}
+
+@-moz-keyframes stayvisible {
+  from {
+    visibility: visible;
+  }
+
+  to {
+    visibility: visible;
+  }
+}
+
+@-o-keyframes stayvisible {
+  from {
+    visibility: visible;
+  }
+
+  to {
+    visibility: visible;
+  }
+}
+
+/* @-ms-keyframes donothing {
+    0% {}
+  
+    100% {}
+  } */
+
+/** CARD **/
+
+/** LOGIN SIDE **/
+
+/* .input-group {
+    margin-bottom: 10px;
+  } */
+
+/* .input-group-addon {
+    width: 40px;
+    border: 1px solid #4c7927;
+    background-color: #4c7927;
+    color: #ebf2e5;
+    font-weight: bold;
+    text-align: center;
+    margin-right: -1px;
+  } */
+
+/* .input-group-addon + input {
+    border: 1px solid #4c7927;
+  } */
+/* 
+  .help-block {
+    position: relative;
+    float: left;
+    color: red;
+    width: 250px;
+    max-width: 250px;
+  } */
+
+.flip-card {
+  cursor: pointer;
+  color: #000000 !important;
+  font-weight: bold;
+}
+
+.main-title-container {
+  color: #ffffff !important;
+  font-weight: bold;
+  font-size: 36px;
+  font-family: Verdana, Geneva, sans-serif;
+}
+
+/* .text-secondary-dark{
+  color: #4c7927;
+  } */
+
+.spin-animation {
+  -webkit-animation: spin 4s linear infinite;
+  -moz-animation: spin 4s linear infinite;
+  animation: spin 4s linear infinite;
+}
+
+.flex-column-list {
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: space-between;
+}
+
+.flex-column-list>div:first-of-type {
+  flex: 1 0 auto !important;
+}
+
+.flex-column-list>form {
+  flex: 1 0 auto !important;
+  background-color: #ffffff;
+  padding: 15px;
+}
+
+.flex-column-list>div:last-of-type {
+  flex: 0 0 auto !important;
+}
+
+.pull-right {
+  float: right;
+}
+
+/* .btn-primary {
+  background-color: #3f1e60;
+  border-color: #3f1e60;
+  cursor: pointer;
+  }
+  
+  .btn-primary:hover {
+    background-color: #654a7f;
+    border-color: #654a7f;
+  } */
+
+.no-padding {
+  padding: 0;
+}
+
+.loginCard-rel {
+  position: relative !important;
+}
+
+.loginCard-abs {
+  position: absolute;
+  top: 25%;
+}
+
+.orenge-refresh {
+  color: #dd5d40 !important;
+  font-size: 25px !important;
+  margin: 5px !important;
+  cursor: pointer;
+}
+
+.text-color {
+  color: #1367a7 !important;
+  font-weight: bold;
+}
+
+.loginModal .modal-dialog {
+  max-width: 600px !important;
+}
+
+.search_Container .accordion-button:not(.collapsed),
+.search_Container .accordion-button {
+  color: white;
+  background-color: #1367a7;
+  box-shadow: inset 0 calc(-1 * var(--bs-accordion-border-width)) 0 var(--bs-accordion-border-color);
+}
+
+.search_Container .accordion-button:focus {
+  z-index: 3;
+  border-color: none !important;
+  outline: 0;
+  box-shadow: none !important;
+}
+
+.search_Container .accordion-button:not(.collapsed)::after
+
+/* ,.search_Container .accordion-button::after  */
+  {
+  /* background-image: url(./assets/img/down.png) !important; */
+  transform: var(--bs-accordion-btn-icon-transform);
+}
+
+.search_Container .accordion-button::after {
+  /* background-image: url(./assets/img/down.png) !important; */
+}
+
+.input-captch {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  grid-template-columns: 7% 93%;
+  /* margin: 25px 0; */
+  padding: 3px 0;
+  border-bottom: 2px solid #d9d9d9;
+}
+
+.login-page .input-captch>input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: none;
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
+  color: #555;
+  font-family: "poppins", sans-serif;
+}
+
+.input-captch .form-control:focus {
+  border-color: none !important;
+  box-shadow: none !important;
+}
+
+.input-captch .imgDiv {
+  width: 100% !important;
+  /* height: 40px !important; */
+}
+
+.input-captch .imgDiv img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+
+/* .login-card .card {
+  margin: 20px;
+} */
+
+.login-card .sec2-2 .instructions {
+  background-color: white;
+  padding: 20px 25px;
+  text-align: left;
+  border: 1px solid #c9c9c9;
+}
+
+.login-card .sec2-2 .instructions p {
+  font-size: 18px;
+  color: #d18700;
+  text-align: center;
+  border-bottom: 1px solid #d18700;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.login-card .sec2-2 .instructions div {
+  color: #444;
+  padding-bottom: 10px;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.login-card .sec2-2 .instructions div span {
+  color: green;
+  font-size: 21px;
+  margin-right: 5px;
+}
+
+
+
+.loginlogo {
+  /* width: 400px !important;
+  height: 70px !important;
+  padding: 10px; */
+  display: flex;
+  justify-content: center;
+}
+
+.loginlogo img {
+  width: 95%;
+  height: 100%;
+  padding-top: 15px;
+  object-fit: contain;
+}
+
+.masked {
+  position: relative;
+  width: 335px;
+  /* Adjust width as needed */
+}
+
+.masked input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: transparent;
+  /* Hide the text */
+  caret-color: transparent;
+  /* Hide the caret */
+}
+
+.inputMask {
+  user-select: none !important;
+  /* Standard syntax */
+  -webkit-user-select: none !important;
+  /* Safari */
+  -moz-user-select: none !important;
+  /* Firefox */
+  -ms-user-select: none !important;
+  /* Internet Explorer/Edge */
+}
+
+.masked ::-moz-selection {
+  /* Code for Firefox */
+  color: transparent;
+  background: #2563eb;
+}
+
+.masked ::selection {
+  color: transparent;
+  background: #2563eb;
+}
+
+.masked::after {
+  content: attr(data-mask);
+  /* Display dots based on data-mask attribute */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  font-size: 16px;
+  color: rgb(80, 78, 78);
+  /* Color of the dots */
+  pointer-events: none;
+  /* Allow clicks on the input */
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1440px) {
+  /* .loginlogo {
+    width: 400px;
+  } */
+
+  .cards-style {
+    top: 15%;
+  }
+}
+
+.changepassowrdbtn {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border: none !important;
+}

@@ -8,31 +8,45 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import { visuallyHidden } from '@mui/utils';
 import { Box } from '@mui/material';
 
-export default function DataTableHead({ onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, headCells }) {
+export default function DataTableHead({ selectable = true, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, headCells }) {
 
     const createSortHandler = (property) => (event) => {
         onRequestSort(event, property);
     };
 
     return (
-        <TableHead>
+        <TableHead sx={{
+            backgroundColor: "#d8107b !important"
+        }}>
             <TableRow>
-                <TableCell padding="checkbox">
-                    <Checkbox
-                        color="primary"
-                        indeterminate={numSelected > 0 && numSelected < rowCount}
-                        checked={rowCount > 0 && numSelected === rowCount}
-                        onChange={onSelectAllClick}
-                        inputProps={{
-                            'aria-label': 'select all desserts',
+                {selectable &&
+                    <TableCell
+                        sx={{
+                            backgroundColor: "transparent",
+                            color: "white"
                         }}
-                    />
-                </TableCell>
+                        padding="checkbox">
+                        <Checkbox
+                            color="primary"
+                            indeterminate={numSelected > 0 && numSelected < rowCount}
+                            checked={rowCount > 0 && numSelected === rowCount}
+                            onChange={onSelectAllClick}
+                            inputProps={{
+                                'aria-label': 'select all desserts',
+                            }}
+                        />
+                    </TableCell>}
                 {headCells.map((headCell) => (
                     <TableCell
+                        sx={{
+                            backgroundColor: "transparent",
+                            color: "white",
+                            fontWeight: "bold",
+                            fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`
+                        }}
                         key={headCell.id}
                         align={headCell.numeric ? 'right' : 'left'}
-                        padding={headCell.disablePadding ? 'none' : 'normal'}
+                        padding={(headCell.disablePadding && selectable) ? 'none' : 'normal'}
                         sortDirection={orderBy === headCell.id ? order : false}
                     >
                         <TableSortLabel
@@ -61,5 +75,6 @@ DataTableHead.propTypes = {
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,
     orderBy: PropTypes.string.isRequired,
     rowCount: PropTypes.number.isRequired,
-    headCells: PropTypes.array
+    headCells: PropTypes.array,
+    selectable: PropTypes.bool
 };

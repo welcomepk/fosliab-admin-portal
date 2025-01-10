@@ -12,14 +12,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import DataTableHead from './data-table-head';
-
+import "./table.css"
 
 
 function descendingComparator(a, b, orderBy) {
@@ -38,10 +32,6 @@ function getComparator(order, orderBy) {
         : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-
-
-
-
 function DataTableToolbar(props) {
     const { numSelected } = props;
     return (
@@ -50,6 +40,7 @@ function DataTableToolbar(props) {
                 {
                     pl: { sm: 2 },
                     pr: { xs: 1, sm: 1 },
+                    minHeight: "40px !important"
                 },
                 numSelected > 0 && {
                     bgcolor: (theme) =>
@@ -57,7 +48,7 @@ function DataTableToolbar(props) {
                 },
             ]}
         >
-            {numSelected > 0 ? (
+            {numSelected > 0 && (
                 <Typography
                     sx={{ flex: '1 1 100%' }}
                     color="inherit"
@@ -66,28 +57,6 @@ function DataTableToolbar(props) {
                 >
                     {numSelected} selected
                 </Typography>
-            ) : (
-                <Typography
-                    sx={{ flex: '1 1 100%' }}
-                    variant="h6"
-                    id="tableTitle"
-                    component="div"
-                >
-                    Nutrition
-                </Typography>
-            )}
-            {numSelected > 0 ? (
-                <Tooltip title="Delete">
-                    <IconButton>
-                        <DeleteIcon />
-                    </IconButton>
-                </Tooltip>
-            ) : (
-                <Tooltip title="Filter list">
-                    <IconButton>
-                        <FilterListIcon />
-                    </IconButton>
-                </Tooltip>
             )}
         </Toolbar>
     );
@@ -97,7 +66,7 @@ DataTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
 
-export default function DataTable({ rows, headCells, selected = [], setSelected, selectable = true }) {
+export default function DataTable({ rows, headCells, selected = [], setSelected, selectable = true, renderTableRow }) {
     const [order, setOrder] = React.useState('asc');
     const [orderBy, setOrderBy] = React.useState('calories');
     const [page, setPage] = React.useState(0);
@@ -147,9 +116,9 @@ export default function DataTable({ rows, headCells, selected = [], setSelected,
         setPage(0);
     };
 
-    const handleChangeDense = (event) => {
-        setDense(event.target.checked);
-    };
+    // const handleChangeDense = (event) => {
+    //     setDense(event.target.checked);
+    // };
 
     // Avoid a layout jump when reaching the last page with empty rows.
     const emptyRows =
@@ -162,6 +131,16 @@ export default function DataTable({ rows, headCells, selected = [], setSelected,
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
         [order, orderBy, page, rowsPerPage, rows],
     );
+
+    // const visibleRows = [...rows]
+    //     .sort(getComparator(order, orderBy))
+    //     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+
+    React.useEffect(() => {
+        setPage(0)
+    }, [rows])
+
+    // console.log({ rows, visibleRows });
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -184,50 +163,45 @@ export default function DataTable({ rows, headCells, selected = [], setSelected,
                             headCells={headCells}
                             selectable={selectable}
                         />
-                        <TableBody>
-                            {visibleRows.map((row, index) => {
-                                const isItemSelected = selected.includes(row.id);
-                                const labelId = `enhanced-table-checkbox-${index}`;
 
-                                return (
-                                    <TableRow
-                                        hover
-                                        onClick={(event) => handleClick(event, row.id)}
-                                        role="checkbox"
-                                        aria-checked={isItemSelected}
-                                        tabIndex={-1}
-                                        key={row.id}
-                                        selected={isItemSelected}
-                                        sx={{ cursor: selectable ? "pointer" : "default" }}
-                                    >
-                                        {/* only visible if selectable is TRUE */}
-                                        {
-                                            selectable &&
-                                            <TableCell padding="checkbox">
-                                                <Checkbox
-                                                    color="primary"
-                                                    checked={isItemSelected}
-                                                    inputProps={{
-                                                        'aria-labelledby': labelId,
-                                                    }}
-                                                />
-                                            </TableCell>
-                                        }
-                                        <TableCell
-                                            component="th"
-                                            id={labelId}
-                                            scope="row"
-                                            padding={selectable ? "none" : "normal"}
+                        <TableBody>
+                            {
+                                // visibleRows.length > 0 ?
+                                visibleRows.map((row, index) => {
+                                    const isItemSelected = selected.includes(row.id);
+                                    const labelId = `enhanced-table-checkbox-${index}`;
+                                    return (
+                                        <TableRow
+                                            key={index}
+                                            hover
+                                            onClick={(event) => handleClick(event, row.id)}
+                                            role="checkbox"
+                                            aria-checked={isItemSelected}
+                                            // tabIndex={-1}
+                                            selected={isItemSelected}
+                                            sx={{ cursor: selectable ? "pointer" : "default" }}
                                         >
-                                            {row.name}
-                                        </TableCell>
-                                        <TableCell align="right">{row.calories}</TableCell>
-                                        <TableCell align="right">{row.fat}</TableCell>
-                                        <TableCell align="right">{row.carbs}</TableCell>
-                                        <TableCell align="right">{row.protein}</TableCell>
-                                    </TableRow>
-                                );
-                            })}
+                                            {
+                                                selectable &&
+                                                <TableCell padding="checkbox" align='left'>
+                                                    <Checkbox
+                                                        color="primary"
+                                                        checked={isItemSelected}
+                                                        inputProps={{
+                                                            'aria-labelledby': labelId,
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                            }
+                                            {
+                                                renderTableRow(row, labelId)
+                                            }
+                                        </TableRow>
+                                    );
+                                })
+                                // :
+                                // <></>
+                            }
                             {emptyRows > 0 && (
                                 <TableRow
                                     style={{
@@ -243,17 +217,13 @@ export default function DataTable({ rows, headCells, selected = [], setSelected,
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={rows.length}
+                    count={rows?.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </Paper>
-            {/* <FormControlLabel
-                control={<Switch checked={dense} onChange={handleChangeDense} />}
-                label="Dense padding"
-            /> */}
         </Box>
     );
 }
@@ -263,7 +233,8 @@ DataTable.propTypes = {
     headCells: PropTypes.array,
     selected: PropTypes.array,
     setSelected: PropTypes.func,
-    selectable: PropTypes.bool
+    selectable: PropTypes.bool,
+    renderTableRow: PropTypes.func
 }
 
 

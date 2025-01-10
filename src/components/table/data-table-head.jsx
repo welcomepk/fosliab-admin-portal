@@ -22,7 +22,7 @@ export default function DataTableHead({ selectable = true, onSelectAllClick, ord
                 {selectable &&
                     <TableCell
                         sx={{
-                            backgroundColor: "transparent",
+                            backgroundColor: "#d8107b",
                             color: "white"
                         }}
                         padding="checkbox">
@@ -39,13 +39,13 @@ export default function DataTableHead({ selectable = true, onSelectAllClick, ord
                 {headCells.map((headCell) => (
                     <TableCell
                         sx={{
-                            backgroundColor: "transparent",
+                            backgroundColor: "#d8107b",
                             color: "white",
                             fontWeight: "bold",
-                            fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`
+                            fontFamily: `"Roboto", "Helvetica", "Arial", sans-serif`,
                         }}
                         key={headCell.id}
-                        align={headCell.numeric ? 'right' : 'left'}
+                        align={headCell.id === "action" ? "center" : "left"} //{headCell.numeric ? 'right' : 'left'}
                         padding={(headCell.disablePadding && selectable) ? 'none' : 'normal'}
                         sortDirection={orderBy === headCell.id ? order : false}
                     >

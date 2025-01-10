@@ -1,40 +1,42 @@
 
-import { TextField, Paper } from "@mui/material"
+import { TextField, Paper, Button, Card } from "@mui/material"
+import TableCell from '@mui/material/TableCell';
+
 import PropTypes from "prop-types"
 import PageWrapper from "../../components/page-wrapper"
 import DataTable from "../../components/table/data-table"
 import { useState } from "react";
 
+import axios from "axios";
+import { baseUrl } from "../../Config";
+import { useQuery } from "@tanstack/react-query";
+import Swal from "sweetalert2";
+import { useAuth } from "../../context/authProvider";
+
 const headCells = [
     {
-        id: 'name',
-        numeric: false,
-        disablePadding: true,
-        label: 'Dessert (100g serving)',
-    },
-    {
-        id: 'calories',
+        id: 'scheme-code',
         numeric: true,
         disablePadding: false,
-        label: 'Calories',
+        label: 'Scheme Code',
     },
     {
-        id: 'fat',
+        id: 'parameter-number',
         numeric: true,
         disablePadding: false,
-        label: 'Fat (g)',
+        label: 'Parameter Number',
     },
     {
-        id: 'carbs',
+        id: 'scheme-description',
         numeric: true,
         disablePadding: false,
-        label: 'Carbs (g)',
+        label: 'Scheme Description',
     },
     {
-        id: 'protein',
+        id: 'status',
         numeric: true,
         disablePadding: false,
-        label: 'Protein (g)',
+        label: 'Status',
     },
 ];
 function filterItems(items, criteria) {
@@ -60,28 +62,85 @@ const items = [
     { id: 13, name: 'Oreo', calories: 437, fat: 18.0, carbs: 63, protein: 4.0 }
 ]
 
+const fetchUserList = async (authToken) => {
+    const response = await axios.post(`${baseUrl}/populateUserList`, {
+        "source": "A",
+        "makerCd": "pramodk"
+    }, {
+        headers: {
+            "Authorization": `Bearer ${authToken}`
+        }
+    });
+    return response.data;
+};
+
 function SuperSchemeMakerPage({ title }) {
+
     const [selected, setSelected] = useState([]);  // for data-table
     const [desert, setDesert] = useState("")
     const filteredRows = filterItems(items, { name: desert })
-    console.log(filteredRows);
+    const { authToken } = useAuth();
+    const { isPending, isError, data, error, refetch } = useQuery({
+        queryKey: ['populateUserList'],
+        queryFn: async () => await fetchUserList(authToken),
+        // retryOnMount: false
+    })
+    const renderTableRow = (row, labelId) => {
+        return <>
+            <TableCell
+                component="th"
+                id={labelId}
+                scope="row"
+            // padding={selectable ? "none" : "normal"}
+            >
+                {row.name}
+            </TableCell>
+            <TableCell align="right">{row.calories}</TableCell>
+            <TableCell align="right">{row.fat}</TableCell>
+            <TableCell align="right">{row.carbs}</TableCell>
+            <TableCell align="right">{row.protein}</TableCell>
+        </>
+    }
+    if (isError) {
+        Swal.fire({
+            icon: "error",
+            text: error.message || "Something went worng",
+        });
+        return (
+            <Card variant="outlined" sx={{ height: "calc(100% - 24px)", marginTop: "24px", display: "grid", placeItems: "center" }}>
+                <div className="text-center">
+                    <h5>{error.message || "Something went worng"}</h5>
+                    <Button variant="outlined" onClick={() => refetch()}>Retry</Button>
+                </div>
+            </Card>
+        )
+    }
+    if (isPending) {
+        return <Card variant="outlined" sx={{ height: "calc(100% - 24px)", marginTop: "24px", display: "grid", placeItems: "center" }}>
+            <h5>Loading...</h5>
+        </Card>
 
+    }
+    console.log(data);
     title = "Super Scheme Master - Maker"
     return (
         <PageWrapper>
-            <Paper variant="outlined" className="p-2" sx={{ backgroundColor: "#d8107b57", }}>
+            <Paper variant="outlined" className="p-2" sx={{ backgroundColor: "#d8107b", color: "white" }}>
                 <h5 className="text-center m-0">{title}</h5>
             </Paper>
             <Paper variant="outlined" className="p-2">
                 <TextField onChange={e => setDesert(e.target.value)} size="small" id="dis" placeholder="search desert" label="Dessert" variant="filled" />
             </Paper>
-            <DataTable
-                rows={filteredRows}
-                headCells={headCells}
-                selected={selected}
-                setSelected={setSelected}
-                selectable={false}
-            />
+            {
+                <DataTable
+                    rows={filteredRows}
+                    headCells={headCells}
+                    selected={selected}
+                    setSelected={setSelected}
+                    selectable={false}
+                    renderTableRow={renderTableRow}
+                />
+            }
         </PageWrapper>
     )
 }

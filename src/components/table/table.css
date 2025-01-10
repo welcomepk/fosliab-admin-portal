@@ -1,0 +1,23 @@
+.css-1gak8h1-MuiToolbar-root-MuiTablePagination-toolbar p {
+    margin: 0;
+}
+
+.css-oegngy-MuiInputBase-root-MuiTablePagination-select {
+    background-color: #e3f5fd;
+}
+
+.action-cell {
+    pointer-events: none;
+}
+.edit-button, .view-button {
+    padding: 6px;
+    pointer-events: initial !important;
+    /* border: 1px solid; */
+}
+.view-button:hover .view-icon{
+    color: #b39700;
+}
+
+.edit-button:hover .edit-icon {
+      color: green;
+  }

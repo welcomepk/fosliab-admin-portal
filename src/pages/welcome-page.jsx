@@ -8,33 +8,31 @@ export default function WelcomePage() {
 
     return (
         <>
-            <div className="container-fluid welcome-home">
-                <div className="row">
-                    <div className="col-md-12 box">
-                        <div className="sec1 text-center">
-                            <img src={credentek_logo} alt="credentek_logo" />
-                        </div>
-                        <div className="sec3 sec text-center">
-                            <Link to="/login" className="link">
-                                <Button
-                                    variant="outlined"
-                                    startIcon={<LoginIcon />}
-                                    sx={{
-                                        fontWeight: "bold",
-                                        color: "#d8107b",
-                                        border: "1px solid #d8107b"
-                                    }}
-                                >
-                                    Click To Continue For Login
-                                </Button>
-                            </Link>
-                        </div>
+            <div className="welcome-home">
+                <div className="box">
+                    <div className="sec1 text-center">
+                        <img src={credentek_logo} alt="credentek_logo" />
+                    </div>
+                    <div className="sec3 sec text-center">
+                        <Link to="/login" className="link">
+                            <Button
+                                variant="outlined"
+                                startIcon={<LoginIcon />}
+                                sx={{
+                                    fontWeight: "bold",
+                                    color: "#d8107b",
+                                    border: "1px solid #d8107b"
+                                }}
+                            >
+                                Click To Continue For Login
+                            </Button>
+                        </Link>
                     </div>
                 </div>
-                {/* <div className="containerFooter">
+            </div>
+            {/* <div className="containerFooter">
                     <Footer />
                 </div> */}
-            </div>
         </>
     );
 };

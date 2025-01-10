@@ -64,6 +64,8 @@ label[data-shrink="false"]+.MuiInputBase-formControl .css-jedpe8-MuiSelect-selec
   background-size: 100% 100%;
   background-position: center;
   background-repeat: no-repeat;
+  display: grid;
+  place-items: center;
 }
 
 .welcome-home .row {
@@ -71,17 +73,19 @@ label[data-shrink="false"]+.MuiInputBase-formControl .css-jedpe8-MuiSelect-selec
   width: 100%;
 }
 
-.welcome-home .row .box {
-  /* background-color: white; */
-  position: absolute;
-  top: 29%;
-  left: 34%;
-  width: auto;
+.welcome-home .box {
+  width: 30%;
   padding: 40px;
   border-radius: 10px;
-  /* box-shadow: 0 0 10px dodgerblue; */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 10rem;
 }
 
+.welcome-home .box img {
+  width: 100%;
+}
 .welcome-home .row .box-w {
   background-color: white;
   position: absolute;
@@ -428,7 +432,7 @@ label[data-shrink="false"]+.MuiInputBase-formControl .css-jedpe8-MuiSelect-selec
   width: 84%;
   padding: 0 20px;
   overflow: scroll;
-  height: 86vh;
+  /* height: 86vh; */
   transition: 0.5s;
   background-color: #eef8fb;
 }

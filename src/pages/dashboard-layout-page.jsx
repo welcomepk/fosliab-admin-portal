@@ -39,6 +39,7 @@ function DashboardLayout() {
             }
         };
     }, []);
+    console.log(isAuthenticated);
 
     if (!isAuthenticated) {
         return <Navigate to="/login" />;

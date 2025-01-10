@@ -11,7 +11,9 @@ import Header from "./header";
 import { useAuth } from "../context/authProvider";
 import { useLocalStorage } from "../hooks/use-local-storage";
 
-
+function toSlug(text) {
+    return text.toLowerCase().replace(/\s+/g, "-");
+}
 function transformMenuData(data) {
     const menuItems = [];
     let currentMenu = null;
@@ -32,11 +34,13 @@ function transformMenuData(data) {
             currentMenu.items.push({
                 menuId: item.menuId,
                 menuDesc: item.menuDesc,
-                screenAction: item.menuDesc.toLowerCase().replace(/\s+/g, "-") // Convert to slug format
+                screenAction: `${toSlug(currentMenu.title)}/${toSlug(item.menuDesc.trim())}` //item.menuDesc.toLowerCase().replace(/\s+/g, "-") // Convert to slug format
             });
         }
         firstItem = false;
     });
+    console.log({ menuItems });
+
     return menuItems;
 }
 
@@ -51,7 +55,7 @@ function MenuBar() {
     };
     const sidebarMenuitems = transformMenuData(user.menu);
     useLocalStorage("userMenuItems", sidebarMenuitems);
-
+    window.localStorage.setItem("userMenuItems", JSON.stringify(sidebarMenuitems))
     const Icon = type => {
         if (type === "Maintenance")
             return <SettingsSuggestIcon />

@@ -1,22 +1,24 @@
 import PropTypes from "prop-types"
 
 import { Paper, Button, Card, TextField, FormControl, InputLabel, Select, MenuItem, Stack, IconButton, Snackbar, Alert, Slide } from "@mui/material"
-
+import { useForm } from "react-hook-form";
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from "yup";
 import TableCell from '@mui/material/TableCell';
-import PageWrapper from "../../components/page-wrapper"
-import DataTable from "../../components/table/data-table"
+import PageWrapper from "../../../components/page-wrapper"
+import DataTable from "../../../components/table/data-table"
 import { useEffect, useState } from "react";
 
 import axios from "axios";
-import { baseUrl } from "../../Config";
+import { baseUrl } from "../../../Config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
-import { useAuth } from "../../context/authProvider";
+import { useAuth } from "../../../context/authProvider";
 import { faEdit, faEraser, faEye, faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import ViewDialog from "../../components/view-dialog";
-import EditDialog from "../../components/edit-dialog";
-import { areSame, convertToTitleCase, filterItems } from "../../utils";
+import ViewDialog from "../../../components/view-dialog";
+import EditDialog from "../../../components/edit-dialog";
+import { areSame, convertToTitleCase, filterItems } from "../../../utils";
 
 function TransitionTop(props) {
     return <Slide {...props} direction="center" />;
@@ -136,6 +138,38 @@ const initialFilters = {
     branchCd: ""
 }
 
+const initalNewRecordState = {
+    userId: "",
+    userName: "",
+    adminFlag: "",
+    userDisableFlag: "",
+    employeeNo: "",
+    branchCd: "",
+    userRoleId: "",
+    emailId: "",
+    validUpto: "",
+    userActiveFlag: "",
+    mobileNo: "",
+    remark: "",
+}
+
+const formValidationSchema = yup
+    .object()
+    .shape({
+        userId: yup.string().required("Required"),
+        userName: yup.string().required("Required"),
+        adminFlag: yup.string().required("Required"),
+        userDisableFlag: yup.string().required("Required"),
+        employeeNo: yup.string().required("Required"),
+        branchCd: yup.string().required("Required"),
+        userRoleId: yup.string().required("Required"),
+        emailId: yup.string().email().required("Required"),
+        validUpto: yup.string().required("Required"),
+        userActiveFlag: yup.string().required("Required"),
+        mobileNo: yup.number().integer().required("Required"),
+        remark: yup.string(),
+    }).required();
+
 function UserMakerPage({ title = "User Master - Maker" }) {
     const [selected, setSelected] = useState([]);  // for data-table
     const [filters, setFilters] = useState(initialFilters)
@@ -161,18 +195,25 @@ function UserMakerPage({ title = "User Master - Maker" }) {
         },
     })
 
+
+    const { register, handleSubmit, errors } = useForm({
+        resolver: yupResolver(formValidationSchema),
+    });
+
     // handling view and edit dialog's
     const [viewDialogOpen, setViewDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [newDialogOpen, setNewDialogOpen] = useState(false);
 
-    const closeViewDialog = () => setViewDialogOpen(false);
-    const closeEditDialog = () => setEditDialogOpen(false);
-    const closeNewDialog = () => setNewDialogOpen(false);
-
-    const [selectedRowData, setSelectedRowData] = useState(null); // State to store the selected row data
-    const [selectedRowDataEdit, setSelectedRowDataEdit] = useState(null); // State to store the selected row data
+    // states for table row actions
+    const [selectedRowData, setSelectedRowData] = useState(null); // State to store the selected row data for view action
+    const [selectedRowDataEdit, setSelectedRowDataEdit] = useState(null); // State to store the selected row data for edit action
     const [selectedRowDataEditCompare, setSelectedRowDataEditCompare] = useState(null);
+
+
+    // states for add new Reacord
+    const [newRecordInputs, setNewRecordInputs] = useState(initalNewRecordState);
+
     // Effect to handle data conversion when data changes
     useEffect(() => {
         if (data?.userMaster) {
@@ -181,6 +222,11 @@ function UserMakerPage({ title = "User Master - Maker" }) {
             setFilteredRows(userList)
         }
     }, [data]);
+
+    // dialogs actions
+    const closeViewDialog = () => setViewDialogOpen(false);
+    const closeEditDialog = () => setEditDialogOpen(false);
+    const closeNewDialog = () => setNewDialogOpen(false);
 
     const handleCloseWarn = () => {
         setIsWarnBarOpen(false)
@@ -204,8 +250,8 @@ function UserMakerPage({ title = "User Master - Maker" }) {
         mutation.mutate(selectedRowDataEdit)
         closeEditDialog()
     }
-    const handleNewDataSubmit = () => {
-        console.log("new record create");
+    const handleNewDataSubmit = (formData) => {
+        console.log(formData);
     }
     const handleAction = (e, actionType, row) => {
         e.stopPropagation() // Prevents the event from reaching TableRow
@@ -217,9 +263,6 @@ function UserMakerPage({ title = "User Master - Maker" }) {
             setViewDialogOpen(true);
             setSelectedRowData(row)
         }
-    }
-    const handleNewRecord = () => {
-        setNewDialogOpen(true);
     }
     const handleFilterInputs = (e) => {
         setFilters(pre => (
@@ -242,15 +285,21 @@ function UserMakerPage({ title = "User Master - Maker" }) {
     const handleEditInputs = (e) => {
         const name = e.target.name;
         const value = e.target.value;
-
         console.log({ name, value });
-
         setSelectedRowDataEdit(pre => ({
             ...pre,
             [name]: value
         }))
     }
-
+    const handleNewRecordInputs = (e) => {
+        const name = e.target.name;
+        const value = e.target.value;
+        console.log({ name, value });
+        setNewRecordInputs(pre => ({
+            ...pre,
+            [name]: value
+        }))
+    }
     const renderTableRow = (tableRow, labelId) => {
         return <>
             <TableCell
@@ -453,13 +502,109 @@ function UserMakerPage({ title = "User Master - Maker" }) {
             )
         })
     }
-    const renderNewData = () => {
+    const renderNewRecordData = () => {
 
+        const branchSelectItems = data.getBranchNameList.map((branch, index) => <MenuItem key={index} value={branch.branchCd}>{branch.branchName}</MenuItem>);
+        const roleSelectItems = data.getRoleMap.map((role, index) => <MenuItem key={index} value={role.role_ID}>{role.role_DESC}</MenuItem>);
+        const adminFlagSelectItems = ["Yes", "No"].map((admin, index) => <MenuItem key={index} value={admin === "Yes" ? "Y" : "N"}>{admin}</MenuItem>);
+        const disableFlagSelectItems = ["Enable", "Disable"].map((disableFlag, index) => <MenuItem key={index} value={disableFlag === "Enable" ? "Y" : "N"}>{disableFlag}</MenuItem>);
+        const activeFlagSelectItems = ["Yes", "No"].map((activeFlag, index) => <MenuItem key={index} value={activeFlag === "Yes" ? "Y" : "N"}>{activeFlag}</MenuItem>);
+
+        let selectItems = null;
+
+        const formFields = Object.entries(newRecordInputs).map(([key, value]) => {
+            const fieldName = convertToTitleCase(key)
+            let display_label = "";
+            if (key === "userRoleId" || key === "adminFlag" || key === "userDisableFlag" || key === "activeFlag" || key === "branchCd" || key === "userActiveFlag") {
+
+                if (key === "branchCd") {
+                    selectItems = branchSelectItems;
+                    display_label = convertToTitleCase("branchName")
+                }
+
+                if (key === "userRoleId") {
+                    selectItems = roleSelectItems;
+                    display_label = convertToTitleCase("Role")
+                }
+                else if (key === "adminFlag") {
+                    selectItems = adminFlagSelectItems;
+                    display_label = convertToTitleCase(key)
+                }
+                else if (key === "userDisableFlag") {
+                    selectItems = disableFlagSelectItems;
+                    display_label = convertToTitleCase("disableFlag")
+                }
+                else if (key === "userActiveFlag") {
+                    selectItems = activeFlagSelectItems;
+                    display_label = convertToTitleCase("activeFlag")
+                }
+
+                return (
+                    <div className="col-md-4" key={key}>
+                        <FormControl className="mb-3" size="small" fullWidth>
+                            <InputLabel id={key}>{display_label}</InputLabel>
+                            <Select
+                                id={key}
+                                label={display_label}
+                                value={newRecordInputs[key]}
+                                size="small"
+                                onChange={handleNewRecordInputs}
+                                name={key}
+                                // error={errors[key]}
+                                inputRef={register}
+                            >
+                                {
+                                    selectItems
+                                }
+                            </Select>
+                        </FormControl>
+                    </div>
+                )
+            }
+            if (key === "remark") {
+                display_label = convertToTitleCase(key)
+                return (
+                    <div className="col-md-12" key={key}>
+                        <FormControl key={key} className="mb-3" size="small" fullWidth>
+                            <TextField
+                                label={display_label}
+                                value={newRecordInputs[key]}
+                                multiline
+                                rows={2}  // Sets the number of visible rows in the textarea
+                                size="small"
+                                name={key}
+                                onChange={handleNewRecordInputs}
+                                // error={errors[key]}
+                                inputRef={register}
+                            />
+                        </FormControl>
+                    </div>
+                )
+            }
+            return (
+                <div className="col-md-4" key={key}>
+                    <FormControl className="mb-3" size="small" fullWidth>
+                        <TextField
+                            label={fieldName}
+                            value={newRecordInputs[key]}
+                            size="small"
+                            name={key}
+                            onChange={handleNewRecordInputs}
+                            // error={errors[key]}
+                            inputRef={register}
+                        />
+                    </FormControl>
+                </div>
+            )
+        })
+
+        return <form onSubmit={handleSubmit(handleNewDataSubmit)}>
+            {formFields}
+        </form>
     }
-
     // only for debug purpose
     useEffect(() => {
-        console.log(selectedRowDataEdit);
+        // console.log(selectedRowDataEdit);
     }, [selectedRowDataEdit])
 
     if (isError) {
@@ -572,7 +717,7 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                                 size="small"
                                 color="info"
                                 sx={{}}
-                                onClick={handleNewRecord}
+                                onClick={() => setNewDialogOpen(true)}
                             >
                                 <FontAwesomeIcon icon={faPlus} />{" "}
                                 <span className="search-icon">Add New Record</span>
@@ -609,7 +754,7 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                 title="User Maker"
                 onClose={closeNewDialog}
                 open={newDialogOpen}
-                renderEditData={renderNewData}
+                renderEditData={renderNewRecordData}
                 handleDataSubmit={handleNewDataSubmit}
                 mutation={mutation}
                 toUpdate={false}

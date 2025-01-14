@@ -30,12 +30,34 @@ export function convertToTitleCase(input) {
 export function filterItems(items, criteria) {
   console.log({ criteria });
 
-  const filteredData = items.filter(item => Object.keys(criteria).every(key =>
-    String(item[key]).toLowerCase().includes(String(criteria[key]).toLowerCase())
+  const filteredData = items.filter(item => Object.entries(criteria).every(([key, value]) => {
+    if (value === "all") return true
+    return String(item[key]).toLowerCase().includes(String(criteria[key]).toLowerCase())
+  }
+
   )
   );
 
   console.log(filteredData);
 
   return filteredData;
+}
+
+
+export function areSame(source, test) {
+  // Ensure both objects have the same structure
+  const sourceKeys = Object.keys(source);
+  const testKeys = Object.keys(test);
+
+  if (sourceKeys.length !== testKeys.length) {
+    return false; // Different structure
+  }
+
+  for (const key of sourceKeys) {
+    if (source[key] !== test[key]) {
+      return false; // Mismatched value found
+    }
+  }
+
+  return true; // All keys and values match
 }

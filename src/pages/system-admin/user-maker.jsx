@@ -1,6 +1,6 @@
 import PropTypes from "prop-types"
 
-import { Paper, Button, Card, TextField, FormControl, InputLabel, Select, MenuItem, Stack, IconButton } from "@mui/material"
+import { Paper, Button, Card, TextField, FormControl, InputLabel, Select, MenuItem, Stack, IconButton, Snackbar, Alert, Slide } from "@mui/material"
 
 import TableCell from '@mui/material/TableCell';
 import PageWrapper from "../../components/page-wrapper"
@@ -9,14 +9,18 @@ import { useEffect, useState } from "react";
 
 import axios from "axios";
 import { baseUrl } from "../../Config";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Swal from "sweetalert2";
 import { useAuth } from "../../context/authProvider";
 import { faEdit, faEraser, faEye, faPlus, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ViewDialog from "../../components/view-dialog";
 import EditDialog from "../../components/edit-dialog";
-import { convertToTitleCase, filterItems } from "../../utils";
+import { areSame, convertToTitleCase, filterItems } from "../../utils";
+
+function TransitionTop(props) {
+    return <Slide {...props} direction="center" />;
+}
 
 const headCells = [
     {
@@ -85,8 +89,28 @@ function convertToUserFormat(item) {
     };
 }
 
+function convertToEditUserFormat(item) {
+    return {
+        userId: item.userId,
+        userName: item.userName,
+        adminFlag: item.adminFlag,
+        userDisableFlag: item.userDisableFlag,
+        employeeNo: item.employeeNo,
+        branchCd: item.branchCd,
+        userRoleId: item.userRoleId,
+        emailId: item.emailId,
+        validUpto: item.validUpto,
+        userActiveFlag: item.userActiveFlag,
+        mobileNo: item.mobileNo,
+        remark: item.remark,
+        makerCd: item.makerCd,
+        makerDt: item.makerDt,
+        authorCd: item.authorCd,
+        authorDt: item.authorDt,
+    };
+}
 const fetchUserList = async (authToken) => {
-    const response = await axios.post(`${baseUrl}/populateUserList`, {
+    const response = await axios.post(`${baseUrl}/userMaster/populate`, {
         "source": "A",
         "makerCd": "pramodk"
     }, {
@@ -96,12 +120,20 @@ const fetchUserList = async (authToken) => {
     });
     return response.data;
 };
+const addUpdateUser = async (authToken, data) => {
+    const res = await axios.post(`${baseUrl}/userMaster/newOrUpdate`, data, {
+        headers: {
+            "Authorization": `Bearer ${authToken}`
+        }
+    });
+    return res.data
+}
 
 const initialFilters = {
     userId: "",
     userName: "",
-    status: "",
-    branchName: ""
+    authStatus: "",
+    branchCd: ""
 }
 
 function UserMakerPage({ title = "User Master - Maker" }) {
@@ -110,22 +142,37 @@ function UserMakerPage({ title = "User Master - Maker" }) {
     const [items, setItems] = useState([])
     const [filteredRows, setFilteredRows] = useState([])
     const { authToken } = useAuth();
+    const [transition, setTransition] = useState(undefined);
+    const [isWarnBarOpen, setIsWarnBarOpen] = useState(false)
+    const [warningMessage, setWarningMessage] = useState("");
     const { isPending, isError, data, error, refetch } = useQuery({
         queryKey: ['populateUserList'],
         queryFn: async () => await fetchUserList(authToken),
 
         // retryOnMount: false
     })
+    const queryClient = useQueryClient()
+    const mutation = useMutation({
+        mutationFn: (data) => addUpdateUser(authToken, data),
+        onSuccess: (data) => {
+            // Invalidate and refetch
+            queryClient.invalidateQueries({ queryKey: ['populateUserList'] })
+            Swal.fire("Success", data.success, "success");
+        },
+    })
 
     // handling view and edit dialog's
     const [viewDialogOpen, setViewDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [newDialogOpen, setNewDialogOpen] = useState(false);
+
     const closeViewDialog = () => setViewDialogOpen(false);
-    const closeEditDialog = () => setEditDialogOpen(false)
+    const closeEditDialog = () => setEditDialogOpen(false);
+    const closeNewDialog = () => setNewDialogOpen(false);
 
     const [selectedRowData, setSelectedRowData] = useState(null); // State to store the selected row data
     const [selectedRowDataEdit, setSelectedRowDataEdit] = useState(null); // State to store the selected row data
-
+    const [selectedRowDataEditCompare, setSelectedRowDataEditCompare] = useState(null);
     // Effect to handle data conversion when data changes
     useEffect(() => {
         if (data?.userMaster) {
@@ -135,15 +182,44 @@ function UserMakerPage({ title = "User Master - Maker" }) {
         }
     }, [data]);
 
+    const handleCloseWarn = () => {
+        setIsWarnBarOpen(false)
+    }
+    // warning - snackbar open
+    const handleClickWarn = (Transition, warnMsg) => {
+        setTransition(() => Transition);
+        setIsWarnBarOpen(true);
+        setWarningMessage(warnMsg);
+    };
+    const handleEditDataSubmit = () => {
+        if (areSame(selectedRowDataEdit, selectedRowDataEditCompare)) {
+            handleClickWarn(
+                TransitionTop,
+                "No changes have been made. There is nothing to update."
+            );
+            return;
+        }
+        selectedRowDataEdit["source"] = "M"
+        selectedRowDataEdit["authStatus"] = "M"
+        mutation.mutate(selectedRowDataEdit)
+        closeEditDialog()
+    }
+    const handleNewDataSubmit = () => {
+        console.log("new record create");
+    }
     const handleAction = (e, actionType, row) => {
         e.stopPropagation() // Prevents the event from reaching TableRow
         if (actionType === "edit") {
-            setSelectedRowDataEdit(true)
+            setSelectedRowDataEdit(row)
+            setSelectedRowDataEditCompare(row)
             setEditDialogOpen(true)
         } else if (actionType === "view") {
             setViewDialogOpen(true);
             setSelectedRowData(row)
         }
+    }
+    const handleNewRecord = () => {
+        setNewDialogOpen(true);
     }
     const handleFilterInputs = (e) => {
         setFilters(pre => (
@@ -163,13 +239,19 @@ function UserMakerPage({ title = "User Master - Maker" }) {
         setFilters(initialFilters)
     }
 
-    console.log({ selected });
+    const handleEditInputs = (e) => {
+        const name = e.target.name;
+        const value = e.target.value;
 
+        console.log({ name, value });
+
+        setSelectedRowDataEdit(pre => ({
+            ...pre,
+            [name]: value
+        }))
+    }
 
     const renderTableRow = (tableRow, labelId) => {
-
-        console.log("tableRow", tableRow);
-
         return <>
             <TableCell
                 component="th"
@@ -267,84 +349,140 @@ function UserMakerPage({ title = "User Master - Maker" }) {
 
     }
     const renderEditData = () => {
-        if (!selectedRowData) return null;
-        console.log(Object.keys(selectedRowData));
-        return Object.entries(selectedRowData).map(([key, value]) => {
+        if (!selectedRowDataEdit) return null;
+        const transformedToEdit = convertToEditUserFormat(selectedRowDataEdit)
 
-            if (key === "role" || key === "adminFlag" || key === "disableFlag" || key === "activeFlag" || key === "branchName") {
-                if (key === "branchName") value = data.getBranchNameList?.find(branch => branch.branchCd === value)["branchName"]
+        const branchSelectItems = data.getBranchNameList.map((branch, index) => <MenuItem key={index} value={branch.branchCd}>{branch.branchName}</MenuItem>);
+        const roleSelectItems = data.getRoleMap.map((role, index) => <MenuItem key={index} value={role.role_ID}>{role.role_DESC}</MenuItem>);
+        const adminFlagSelectItems = ["Yes", "No"].map((admin, index) => <MenuItem key={index} value={admin === "Yes" ? "Y" : "N"}>{admin}</MenuItem>);
+        const disableFlagSelectItems = ["Enable", "Disable"].map((disableFlag, index) => <MenuItem key={index} value={disableFlag === "Enable" ? "Y" : "N"}>{disableFlag}</MenuItem>);
+        const activeFlagSelectItems = ["Yes", "No"].map((activeFlag, index) => <MenuItem key={index} value={activeFlag === "Yes" ? "Y" : "N"}>{activeFlag}</MenuItem>);
+
+
+        let selectItems = null;
+
+        return Object.entries(transformedToEdit).map(([key, value]) => {
+            const fieldName = convertToTitleCase(key)
+            let display_label = "";
+            let display_value = ""
+            if (key === "userRoleId" || key === "adminFlag" || key === "userDisableFlag" || key === "activeFlag" || key === "branchCd" || key === "userActiveFlag") {
+
+                if (key === "branchCd") {
+                    selectItems = branchSelectItems;
+                    display_label = convertToTitleCase("branchName")
+                    value = data.getBranchNameList?.find(branch => branch.branchCd === value)["branchCd"]
+                    display_value = value;
+                }
+
+                if (key === "userRoleId") {
+                    selectItems = roleSelectItems;
+                    display_label = convertToTitleCase("Role")
+                    const role = data.getRoleMap?.find(role => role["role_ID"] === value)
+                    display_value = role ? role["role_DESC"] : ""
+                }
+                else if (key === "adminFlag") {
+                    selectItems = adminFlagSelectItems;
+                    display_label = convertToTitleCase(key)
+                    display_value = value;
+                }
+                else if (key === "userDisableFlag") {
+                    selectItems = disableFlagSelectItems;
+                    display_label = convertToTitleCase("disableFlag")
+                    display_value = value;
+                }
+                else if (key === "userActiveFlag") {
+                    selectItems = activeFlagSelectItems;
+                    display_label = convertToTitleCase("activeFlag")
+                    display_value = value;
+                }
+
                 return (
                     <div className="col-md-4" key={key}>
                         <FormControl className="mb-3" size="small" fullWidth>
-                            <InputLabel id="status">{key}</InputLabel>
+                            <InputLabel id={key}>{display_label}</InputLabel>
                             <Select
-                                id="status"
-                                label={key}
-                                value={value === "" ? " " : value}
+                                id={key}
+                                label={display_label}
+                                value={selectedRowDataEdit[key]}
                                 size="small"
+                                onChange={handleEditInputs}
+                                name={key}
                             >
-                                <MenuItem value={value}>{value}</MenuItem>
+                                {
+                                    selectItems
+                                }
                             </Select>
                         </FormControl>
                     </div>
                 )
             }
             if (key === "remark") {
+                display_label = convertToTitleCase(key)
                 return (
                     <div className="col-md-12" key={key}>
                         <FormControl key={key} className="mb-3" size="small" fullWidth>
                             <TextField
-                                label={key}
-                                value={value || ""}
+                                label={display_label}
+                                value={selectedRowDataEdit[key] === null ? "" : selectedRowDataEdit[key]}
                                 multiline
                                 rows={2}  // Sets the number of visible rows in the textarea
                                 size="small"
+                                name={key}
+                                onChange={handleEditInputs}
                             />
                         </FormControl>
                     </div>
                 )
             }
-            if (key === "maker" || key === "author" || key === "makerDate" || key === "authorDate") {
-                const fieldName = convertToTitleCase(key)
+            if (key === "makerCd" || key === "authorCd" || key === "makerDt" || key === "authorDt") {
                 return <p className="col-md-6 text-danger m-0" key={key}><span>{fieldName}</span>: <span>{value || `No ${fieldName}`}</span> </p>
             }
             return (
                 <div className="col-md-4" key={key}>
                     <FormControl className="mb-3" size="small" fullWidth>
                         <TextField
-                            label={key}
-                            value={value || ""}
+                            label={fieldName}
+                            value={selectedRowDataEdit[key]}
                             size="small"
+                            name={key}
+                            onChange={handleEditInputs}
+                            disabled={key === "userId"}
                         />
                     </FormControl>
                 </div>
             )
         })
+    }
+    const renderNewData = () => {
 
     }
+
+    // only for debug purpose
+    useEffect(() => {
+        console.log(selectedRowDataEdit);
+    }, [selectedRowDataEdit])
+
     if (isError) {
         Swal.fire({
             icon: "error",
             text: error.message || "Something went worng",
         });
         return (
-            <Card variant="outlined" sx={{ height: "calc(100% - 24px)", marginTop: "24px", display: "grid", placeItems: "center" }}>
+            <Card variant="outlined" sx={{ height: "calc(100% - 24px) !important", padding: "2rem", gap: "1rem", marginTop: "24px", display: "grid", placeItems: "center" }}>
                 <div className="text-center">
                     <h5>{error.message || "Something went worng"}</h5>
-                    <Button variant="outlined" onClick={() => refetch()}>Retry</Button>
                 </div>
+                <Button variant="outlined" onClick={() => refetch()}>Retry</Button>
             </Card>
         )
     }
     if (isPending) {
-        return <Card variant="outlined" sx={{ height: "calc(100% - 24px)", marginTop: "24px", display: "grid", placeItems: "center" }}>
-            <h5>Loading...</h5>
+        return <Card variant="outlined" sx={{ height: "calc(100% - 24px) !important", padding: "2rem", gap: "1rem", marginTop: "24px", display: "grid", placeItems: "center" }}>
+            <div className="text-center">
+                <h5>Loading ...</h5>
+            </div>
         </Card>
     }
-    console.log({
-        filters
-    });
-
     return (
         <PageWrapper>
             <Stack spacing={4}>
@@ -381,7 +519,7 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                                         name="authStatus"
                                         onChange={handleFilterInputs}
                                     >
-                                        <MenuItem value={""}>All</MenuItem>
+                                        <MenuItem value={"all"}>All</MenuItem>
                                         <MenuItem value={"new"}>New</MenuItem>
                                         <MenuItem value={"authorized"}>Authorized</MenuItem>
                                         <MenuItem value={"modified"}>Modified</MenuItem>
@@ -392,12 +530,12 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                                     <Select
                                         labelId="branch_name"
                                         id="branch_name"
-                                        value={filters.branchName}
+                                        value={filters.branchCd}
                                         label="Branch Name"
-                                        name="branchName"
+                                        name="branchCd"
                                         onChange={handleFilterInputs}
                                     >
-                                        <MenuItem value={""}>All</MenuItem>
+                                        <MenuItem value={"all"}>All</MenuItem>
                                         {
                                             data.getBranchNameList?.map((branch, index) => {
                                                 return <MenuItem key={index} value={branch.branchCd}>{branch.branchName}</MenuItem>
@@ -428,12 +566,13 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                                 </Stack>
                             </Stack>
                         </form>
-                        <div className="d-flex justify-content-center">
+                        <div className="d-flex justify-content-end">
                             <Button
                                 variant="contained"
                                 size="small"
-                                color="success"
+                                color="info"
                                 sx={{}}
+                                onClick={handleNewRecord}
                             >
                                 <FontAwesomeIcon icon={faPlus} />{" "}
                                 <span className="search-icon">Add New Record</span>
@@ -446,7 +585,7 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                     headCells={headCells}
                     selected={selected}
                     setSelected={setSelected}
-                    selectable={true}
+                    selectable={false}
                     renderTableRow={renderTableRow}
                     sx
                 />
@@ -462,8 +601,36 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                 onClose={closeEditDialog}
                 open={editDialogOpen}
                 renderEditData={renderEditData}
+                handleDataSubmit={handleEditDataSubmit}
+                mutation={mutation}
+                toUpdate={true}
             />
-
+            <EditDialog
+                title="User Maker"
+                onClose={closeNewDialog}
+                open={newDialogOpen}
+                renderEditData={renderNewData}
+                handleDataSubmit={handleNewDataSubmit}
+                mutation={mutation}
+                toUpdate={false}
+            />
+            {/* snackbar for warning messages */}
+            <Snackbar
+                open={isWarnBarOpen}
+                autoHideDuration={5000}
+                onClose={handleCloseWarn}
+                TransitionComponent={transition}
+                key={transition ? transition.name : ""}
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={handleCloseWarn}
+                    severity="warning"
+                    sx={{ width: "100%", marginTop: "8px", fontWeight: "bold" }}
+                >
+                    {warningMessage}
+                </Alert>
+            </Snackbar>
         </PageWrapper>
     )
 }

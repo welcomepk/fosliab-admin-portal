@@ -9,6 +9,9 @@ import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import { Slide } from "@mui/material";
 import { forwardRef } from "react";
+import { LoadingButton } from "@mui/lab";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faClose } from "@fortawesome/free-solid-svg-icons";
 
 const Transition = forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -22,8 +25,11 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     },
 }));
 
-export default function ViewDialog({ title, open, onClose, renderEditData }) {
+export default function ViewDialog({ title, open, onClose, renderEditData, handleDataSubmit, mutation, toUpdate }) {
 
+    const handleSubmit = () => {
+        handleDataSubmit();
+    }
 
     return (
         <BootstrapDialog
@@ -64,7 +70,30 @@ export default function ViewDialog({ title, open, onClose, renderEditData }) {
                 }
             </DialogContent>
             <DialogActions>
-                <Button variant="contained" color="error" autoFocus onClick={onClose}>
+                {
+                    toUpdate ?
+                        <LoadingButton
+                            size="small"
+                            onClick={handleSubmit}
+                            loading={mutation.isPending}
+                            loadingPosition="start"
+                            startIcon={<FontAwesomeIcon className="icon" icon={faCheck} />}
+                            variant="contained"
+                        >
+                            Update
+                        </LoadingButton> : <LoadingButton
+                            size="small"
+                            onClick={handleSubmit}
+                            loading={mutation.isPending}
+                            loadingPosition="start"
+                            startIcon={<FontAwesomeIcon className="icon" icon={faCheck} />}
+                            variant="contained"
+                        >
+                            Save
+                        </LoadingButton>
+                }
+                <Button size="small" variant="contained" color="warning" autoFocus onClick={onClose}>
+                    <FontAwesomeIcon className="icon" icon={faClose} />
                     CLOSE
                 </Button>
             </DialogActions>
@@ -75,5 +104,10 @@ export default function ViewDialog({ title, open, onClose, renderEditData }) {
 
 
 ViewDialog.propTypes = {
-    title: PropTypes.string, open: PropTypes.bool, onClose: PropTypes.func, renderEditData: PropTypes.func
+    title: PropTypes.string,
+    open: PropTypes.bool, onClose: PropTypes.func,
+    renderEditData: PropTypes.func,
+    handleDataSubmit: PropTypes.func,
+    mutation: PropTypes.object,
+    toUpdate: PropTypes.bool
 }

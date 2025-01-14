@@ -2313,6 +2313,9 @@ div:where(.swal2-container) h2:where(.swal2-title) {
   font-size: 1.775em !important;
 }
 
+.swal2-container {
+  z-index: 1600 !important;
+}
 .sftp.password-icon {
   /* Ensure the icon is displayed properly */
   position: absolute;

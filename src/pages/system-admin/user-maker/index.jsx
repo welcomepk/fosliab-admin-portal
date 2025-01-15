@@ -19,6 +19,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ViewDialog from "../../../components/view-dialog";
 import EditDialog from "../../../components/edit-dialog";
 import { areSame, convertToTitleCase, filterItems } from "../../../utils";
+import { FormInputText } from "../../../components/form-components/form-input-text";
+import { FormSelect } from "../../../components/form-components/form-select";
+import { FormInputTextArea } from "../../../components/form-components/form-input-text-area";
 
 function TransitionTop(props) {
     return <Slide {...props} direction="center" />;
@@ -166,7 +169,7 @@ const formValidationSchema = yup
         emailId: yup.string().email().required("Required"),
         validUpto: yup.string().required("Required"),
         userActiveFlag: yup.string().required("Required"),
-        mobileNo: yup.number().integer().required("Required"),
+        mobileNo: yup.string().matches(/^[6-9]\d{9}$/, "Invalid mobile number. It must start with 6, 7, 8, or 9 and be 10 digits long.").required("Required"),
         remark: yup.string(),
     }).required();
 
@@ -196,8 +199,9 @@ function UserMakerPage({ title = "User Master - Maker" }) {
     })
 
 
-    const { register, handleSubmit, errors } = useForm({
+    const { handleSubmit, control } = useForm({
         resolver: yupResolver(formValidationSchema),
+        defaultValues: initalNewRecordState
     });
 
     // handling view and edit dialog's
@@ -541,23 +545,26 @@ function UserMakerPage({ title = "User Master - Maker" }) {
 
                 return (
                     <div className="col-md-4" key={key}>
-                        <FormControl className="mb-3" size="small" fullWidth>
-                            <InputLabel id={key}>{display_label}</InputLabel>
-                            <Select
+
+                        {/* <Select
                                 id={key}
                                 label={display_label}
                                 value={newRecordInputs[key]}
                                 size="small"
                                 onChange={handleNewRecordInputs}
                                 name={key}
-                                // error={errors[key]}
-                                inputRef={register}
                             >
                                 {
                                     selectItems
                                 }
-                            </Select>
-                        </FormControl>
+                            </Select> */}
+                        <FormSelect
+                            name={key}
+                            label={display_label}
+                            control={control}
+                            selectItems={selectItems}
+                        />
+
                     </div>
                 )
             }
@@ -566,16 +573,11 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                 return (
                     <div className="col-md-12" key={key}>
                         <FormControl key={key} className="mb-3" size="small" fullWidth>
-                            <TextField
-                                label={display_label}
-                                value={newRecordInputs[key]}
-                                multiline
-                                rows={2}  // Sets the number of visible rows in the textarea
-                                size="small"
+                            <FormInputTextArea
                                 name={key}
-                                onChange={handleNewRecordInputs}
-                                // error={errors[key]}
-                                inputRef={register}
+                                label={display_label}
+                                control={control}
+                                rows={2}
                             />
                         </FormControl>
                     </div>
@@ -584,22 +586,27 @@ function UserMakerPage({ title = "User Master - Maker" }) {
             return (
                 <div className="col-md-4" key={key}>
                     <FormControl className="mb-3" size="small" fullWidth>
-                        <TextField
+                        {/* <TextField
                             label={fieldName}
                             value={newRecordInputs[key]}
                             size="small"
                             name={key}
                             onChange={handleNewRecordInputs}
-                            // error={errors[key]}
-                            inputRef={register}
+                        /> */}
+                        <FormInputText
+                            name={key}
+                            label={fieldName}
+                            control={control}
+                            type={key === "mobileNo" ? "tel" : "text"}
                         />
                     </FormControl>
                 </div>
             )
         })
 
-        return <form onSubmit={handleSubmit(handleNewDataSubmit)}>
+        return <form className="row" onSubmit={handleSubmit(handleNewDataSubmit)}>
             {formFields}
+            <input type="submit" className="sr-only" />
         </form>
     }
     // only for debug purpose
@@ -755,7 +762,7 @@ function UserMakerPage({ title = "User Master - Maker" }) {
                 onClose={closeNewDialog}
                 open={newDialogOpen}
                 renderEditData={renderNewRecordData}
-                handleDataSubmit={handleNewDataSubmit}
+                handleDataSubmit={handleSubmit(handleNewDataSubmit)}
                 mutation={mutation}
                 toUpdate={false}
             />
